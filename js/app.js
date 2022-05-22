@@ -1,6 +1,6 @@
 const formularioContactos = document.querySelector('#contacto'),
     listadoContactos = document.querySelector('#listado-contactos tbody');
-inputBuscador = document.querySelector('#buscar');
+    inputBuscador = document.querySelector('#buscar');
 
 eventListeners();
 
@@ -9,14 +9,14 @@ function eventListeners() {
     formularioContactos.addEventListener('submit', leerFormulario);
 
     //Listener para el boton eliminar
-    if (listadoContactos) {
-        listadoContactos.addEventListener('click', eliminarContacto);
-    }
+    listadoContactos?.addEventListener('click', eliminarContacto);
 
     //Buscador
-    inputBuscador.addEventListener('input', buscarContactos);
+    inputBuscador?.addEventListener('input', buscarContactos);
     //Numero de contactos
-    numeroContactos();
+    if(inputBuscador){
+        numeroContactos();
+    }
 }
 
 function leerFormulario(e) {
@@ -67,58 +67,66 @@ function insertarBD(datos) {
     //pasar los datos
     xhr.onload = function() {
             if (this.status === 200) {
-
                 //Leemos la respuesta de PHP
                 const respuesta = JSON.parse(xhr.responseText);
-                //Inserta un nuevo elemento a la tabla
-                const nuevoContacto = document.createElement('tr');
-                nuevoContacto.innerHTML = `
-                <td>${respuesta.datos.nombre}</td>
-                <td>${respuesta.datos.empresa}</td>
-                <td>${respuesta.datos.telefono}</td>
-                `;
-                //Crear contenedor para los botones
-                const contenedorAcciones = document.createElement('td');
+                if(!respuesta.error){
+                    //Inserta un nuevo elemento a la tabla
+                    const nuevoContacto = document.createElement('tr');
+                    nuevoContacto.innerHTML = `
+                    <td>${respuesta.datos.nombre}</td>
+                    <td>${respuesta.datos.empresa}</td>
+                    <td>${respuesta.datos.telefono}</td>
+                    `;
+                    //Crear contenedor para los botones
+                    const contenedorAcciones = document.createElement('td');
 
-                //Crear el icono de editar
-                const iconoEditar = document.createElement('i');
-                iconoEditar.classList.add('fas', 'fa-pen-square');
-                //Crea el enlace para editar
-                const btnEditar = document.createElement('a');
-                btnEditar.appendChild(iconoEditar);
-                btnEditar.href = `editar.php?id=${respuesta.datos.id_insertado}`;
-                btnEditar.classList.add('btn', 'btn-editar');
-                //Agregarlo al padre
-                contenedorAcciones.appendChild(btnEditar);
+                    //Crear el icono de editar
+                    const iconoEditar = document.createElement('i');
+                    iconoEditar.classList.add('fas', 'fa-pen-square');
+                    //Crea el enlace para editar
+                    const btnEditar = document.createElement('a');
+                    btnEditar.appendChild(iconoEditar);
+                    btnEditar.href = `editar.php?id=${respuesta.datos.id_insertado}`;
+                    btnEditar.classList.add('btn', 'btn-editar');
+                    //Agregarlo al padre
+                    contenedorAcciones.appendChild(btnEditar);
 
-                //Crear el icono de eliminar
-                //Crea el <i></i>
-                const iconoEliminar = document.createElement('i');
-                //Le da estilos al i .fas .fa-trash-alt
-                iconoEliminar.classList.add('fas', 'fa-trash-alt');
-                //Crea el boton de eliminar
-                const btnEliminar = document.createElement('button');
-                btnEliminar.appendChild(iconoEliminar);
-                //Le da atributos al boton 
-                btnEliminar.setAttribute('data-id', respuesta.datos.id_insertado);
-                btnEliminar.classList.add('btn', 'btn-borrar');
-                //Agregarlo al padre
-                contenedorAcciones.appendChild(btnEliminar);
+                    //Crear el icono de eliminar
+                    //Crea el <i></i>
+                    const iconoEliminar = document.createElement('i');
+                    //Le da estilos al i .fas .fa-trash-alt
+                    iconoEliminar.classList.add('fas', 'fa-trash-alt');
+                    //Crea el boton de eliminar
+                    const btnEliminar = document.createElement('button');
+                    btnEliminar.appendChild(iconoEliminar);
+                    //Le da atributos al boton 
+                    btnEliminar.setAttribute('data-id', respuesta.datos.id_insertado);
+                    btnEliminar.classList.add('btn', 'btn-borrar');
+                    //Agregarlo al padre
+                    contenedorAcciones.appendChild(btnEliminar);
 
-                //Agregarlo al tr
-                nuevoContacto.appendChild(contenedorAcciones);
+                    //Agregarlo al tr
+                    nuevoContacto.appendChild(contenedorAcciones);
 
-                //Agregarlo con los contactos
-                listadoContactos.appendChild(nuevoContacto);
+                    //Agregarlo con los contactos
+                    listadoContactos.appendChild(nuevoContacto);
 
-                //Resetear el formulario
-                document.querySelector('form').reset();
+                    //Resetear el formulario
+                    document.querySelector('form').reset();
 
-                //Mostrar notificaciones
-                mostrarNotificacion('Contacto creado correctamente', 'correcto');
+                    //Mostrar notificaciones
+                    mostrarNotificacion('Contacto creado correctamente', 'correcto');
 
-                //Actualizar el numero de contactos
-                numeroContactos();
+                    //Actualizar el numero de contactos
+                    numeroContactos();
+                }else{
+                    if(respuesta.error === 'is_not_number'){
+                        mostrarNotificacion('>:(', 'error');
+                    }else{
+                        mostrarNotificacion('Hubo un error', 'error');
+                    }
+                }
+                
             }
         }
         //enviar los datos
@@ -138,14 +146,17 @@ function actualizarRegistro(datos) {
                     //Mostrar notificacion de correcto
                     mostrarNotificacion('Contacto editado correctamente', 'correcto');
                 } else {
-                    //Hubo un error
-                    mostrarNotificacion('Hubo un error', 'error');
+                    if(respuesta.error === 'is_not_number'){
+                        mostrarNotificacion('>:(', 'error');
+                    }else{
+                        mostrarNotificacion('Hubo un error', 'error');
+                    }
                 }
             }
             //Después de 3s redireccionar
             setTimeout(() => {
                 window.location.href = 'index.php';
-            }, 4000);
+            }, 1000);
         }
         //Enviar la peticion
     xhr.send(datos);
@@ -232,7 +243,6 @@ function buscarContactos(e) {
 function numeroContactos() {
     const totalContactos = document.querySelectorAll('tbody tr'),
         contenedorNumero = document.querySelector('.total-contactos span');
-
 
     let total = 0;
 

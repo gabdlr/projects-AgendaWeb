@@ -10,6 +10,9 @@ if ($_POST['accion'] == 'crear') {
     $telefono = filter_var($_POST['telefono'], FILTER_SANITIZE_STRING);
 
     try {
+        if(!is_numeric($telefono)){
+            throw new \Exception("is_not_number");
+        }
         $stmt = $conn->prepare("INSERT INTO contactos (nombre, empresa, telefono) VALUES (?, ?, ?)");
         $stmt->bind_param("sss", $nombre, $empresa, $telefono);
         $stmt->execute();
@@ -67,6 +70,9 @@ if($_POST['accion'] == 'editar') {
     $id = filter_var($_POST['id'], FILTER_SANITIZE_NUMBER_INT);
 
     try {
+        if(!is_numeric($telefono)){
+            throw new \Exception("is_not_number");
+        }
         $stmt = $conn->prepare("UPDATE contactos SET nombre = ?, telefono = ?, empresa = ? WHERE id = ?");
         $stmt->bind_param("sssi", $nombre, $telefono, $empresa, $id);
         $stmt->execute();
